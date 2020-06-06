@@ -2,34 +2,40 @@ import epidemics.cfg as cfg
 
 import random
 import math
+import numpy as np
 
 import json
 import uuid
 
 
 class Population:
-    def __init__(self, habitants, agents):
+    def __init__(self, habitants, agents, size=0, fromjson=True):
         self.habitants = habitants
         self.agents = agents
+        self.size = size
+        self.fromjson = fromjson
 
     def generate(self):
-        PATH = 'C:/Users/victo/Desktop/PythonProjects/Epidemics/data/france.json'
+        path = 'C:/Users/victo/Desktop/PythonProjects/Epidemics/data/france.json'
 
         population_stats = {}
-        with open(PATH) as population_json:
+        with open(path) as population_json:
             data = json.load(population_json)
             for p in data:
                 population_stats[p['id']] = p
 
         for i in range(cfg.NETWORK_SIZE):
             local_habitants = set()
-            SIZE = population_stats[i]['size']
+            if self.fromjson:
+                size = population_stats[i]['size']
+            else:
+                size = self.size
             # Computes size of each age group from total population
-            GROUP1SIZE = math.floor(population_stats[i]['0to19'] * SIZE / 100)
-            GROUP2SIZE = math.floor(population_stats[i]['20to39'] * SIZE / 100)
-            GROUP3SIZE = math.floor(population_stats[i]['40to59'] * SIZE / 100)
-            GROUP4SIZE = math.floor(population_stats[i]['60to74'] * SIZE / 100)
-            GROUP5SIZE = SIZE - GROUP1SIZE - GROUP2SIZE - GROUP3SIZE - GROUP4SIZE
+            GROUP1SIZE = math.floor(population_stats[i]['0to19'] * size / 100)
+            GROUP2SIZE = math.floor(population_stats[i]['20to39'] * size / 100)
+            GROUP3SIZE = math.floor(population_stats[i]['40to59'] * size / 100)
+            GROUP4SIZE = math.floor(population_stats[i]['60to74'] * size / 100)
+            GROUP5SIZE = size - GROUP1SIZE - GROUP2SIZE - GROUP3SIZE - GROUP4SIZE
             # Generates agents for each age group and adds them to the local population
             for _ in range(GROUP1SIZE):
                 uid, agent = self.random_agent(0, 19, i)
