@@ -32,39 +32,36 @@ class Population:
             GROUP5SIZE = SIZE - GROUP1SIZE - GROUP2SIZE - GROUP3SIZE - GROUP4SIZE
             # Generates agents for each age group and adds them to the local population
             for _ in range(GROUP1SIZE):
-                self.random_agent(0, 19, i)
+                uid, agent = self.random_agent(0, 19, i)
+                self.agents[uid] = agent
+                local_habitants.add(uid)
             for _ in range(GROUP2SIZE):
-                self.random_agent(20, 39, i)
+                uid, agent = self.random_agent(20, 39, i)
+                self.agents[uid] = agent
+                local_habitants.add(uid)
             for _ in range(GROUP3SIZE):
-                self.random_agent(40, 59, i)
+                uid, agent = self.random_agent(40, 59, i)
+                self.agents[uid] = agent
+                local_habitants.add(uid)
             for _ in range(GROUP4SIZE):
-                self.random_agent(60, 74, i)
+                uid, agent = self.random_agent(60, 74, i)
+                self.agents[uid] = agent
+                local_habitants.add(uid)
             for _ in range(GROUP5SIZE):
-                self.random_agent(75, 90, i)
+                uid, agent = self.random_agent(75, 100, i)
+                self.agents[uid] = agent
+                local_habitants.add(uid)
+            self.habitants.append(local_habitants)
 
-    def random_agent(self, min_age, max_age, position):
+    @staticmethod
+    def random_agent(min_age, max_age, position):
         # Randomly generates an agent within the given age range in the given node
         uid = uuid.uuid4()
-        age = random.randint(min_age, max_age)
-        sex = random.choice(['m', 'f'])
-        position = position
-        state = 1
-        # Updates agent dictionnary
-        self.agents[uid] = {
-            'age': age,
-            'sex': sex,
+        agent = {
+            'age': random.randint(min_age, max_age),
+            'sex': random.choice(['m', 'f']),
             'prevposition': position,
             'position': position,
-            'state': state
+            'state': 1
         }
-        # Updates habitants
-        self.habitants[position].add(uid)
-
-
-habitants = [set() for _ in range(cfg.NETWORK_SIZE)]
-agents = dict()
-
-p = Population(habitants, agents)
-p.generate()
-
-print(agents)
+        return uid, agent
