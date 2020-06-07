@@ -4,9 +4,9 @@
 NETWORK_SIZE = 13
 
 # disease param.
-k = 5
-ptrans = 0.2
-gamma = 5
+K = 5
+PTRANS = 0.2
+GAMMA = 5
 
 # simulation param.
 STEPS = 50
