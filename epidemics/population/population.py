@@ -1,9 +1,7 @@
 import epidemics.cfg as cfg
 
-import multiprocessing as mp
 import random
 import math
-import json
 
 from abc import abstractmethod
 from uuid import uuid4
@@ -12,11 +10,14 @@ import os
 # Parameters import
 NETWORK_SIZE = cfg.NETWORK_SIZE
 
+# TODO: Linux/Mac compatibility
+# TODO: Take into account age groups
 
 class Population:
-    def __init__(self, habitants, agents, size=0, fromjson=True):
+    def __init__(self, habitants, agents, population_stats, size=0, fromjson=True):
         self.habitants = habitants
         self.agents = agents
+        self.population_stats = population_stats
         self.size = size
         self.fromjson = fromjson
 
@@ -26,15 +27,8 @@ class Population:
         pass
 
     @abstractmethod
-    def generate_local(self, position):
-        """ Generates population in the given node """
+    def generate_local(self, pos):
         pass
-
-    def update(self, age_range, group_size, position):
-        for _ in range(group_size):
-            uid, agent = self.random_agent(age_range, position)
-            self.agents[uid] = agent
-            self.habitants[position].add(uid)
 
     @staticmethod
     def random_agent(age_range, position):
@@ -51,39 +45,41 @@ class Population:
 
 
 class CppPopulation(Population):
-    def __init__(self, habitants, agents, size=0, fromjson=True):
-        super().__init__(habitants, agents, size, fromjson)
+    def __init__(self, habitants, agents, population_stats, size=0, fromjson=True):
+        super().__init__(habitants, agents, population_stats, size, fromjson)
 
     def generate(self):
-        path = 'C:/Users/victo/Desktop/PythonProjects/Epidemics/data/france.json'
-
-        population_stats = {}
-        with open(path) as population_json:
-            data = json.load(population_json)
-            for p in data:
-                population_stats[p['id']] = p
-
-        if self.fromjson:
-            size = population_stats[1]['size']
-        else:
-            size = self.size
-
-        # Compiles and runs c++ file
+        # Compiling c++ file
         os.chdir('C:/Users/victo/Desktop/PythonProjects/Epidemics/lib')
         os.system("echo ...compilating")
         os.system('g++ main.cpp')
         os.system("echo ...running")
-        os.system(f'a.exe {size}')
+        for pos in range(NETWORK_SIZE):
+            self.generate_local(pos)
         # Reads population.txt and stores data in agents and habitants
-        keys = ['age', 'sex', 'prevposition', 'position', 'state']
-        with open('C:/Users/victo/Desktop/PythonProjects/Epidemics/lib/population.txt') as f:
+        with open('C:/Users/victo/Desktop/PythonProjects/Epidemics/data/population.txt') as f:
             for line in f:
-                agent = {}
-                values = line.split()
-                for index, key in enumerate(keys):
-                    agent[key] = int(values[index + 1])
-                self.agents[values[0]] = agent
-                self.habitants[int(values[3])].add(int(values[0]))
+                values = list(map(int, line.split()))
+                uid = random.randint(0, 1000000000)
+                agent = {
+                    'age': values[0],
+                    'sex': values[1],
+                    'prevposition': values[2],
+                    'position': values[2],
+                    'state': 1
+                }
+                self.agents[uid] = agent
+                self.habitants[values[2]].add(uid)
+        # Remove executable and .txt file
+        os.system('del a.exe')
+        os.chdir('../data')
+        os.system('del population.txt')
 
-    def generate_local(self, position):
-        pass
+
+    def generate_local(self, pos):
+        if self.fromjson:
+            size = self.population_stats[pos]['size']
+        else:
+            size = self.size
+        # Runs c++ file
+        os.system(f'a.exe {size} {pos} {random.randint(0,1000000)}')
